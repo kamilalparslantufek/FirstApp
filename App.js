@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import 'react-native-gesture-handler'
+import axios from 'axios';
 import { StatusBar } from 'expo-status-bar';
-import { ActivityIndicator, StyleSheet, Text, View, Button, TextInput, Fla } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View, Button, TextInput, Image } from 'react-native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { NavigationContainer } from '@react-navigation/native';
 
@@ -9,24 +10,45 @@ function Home({ navigation }){
 
   const [data, setData] = useState([]);
   const [isLoading, setLoading] = useState(true);
-  const getData = async () => {
-    const response = await fetch("https://eu.api.blizzard.com/data/wow/pet/39?namespace=static-eu&locale=en_GB&access_token=EUlOsP2apwkTNTdQGPxLErl7qmfy0MOdrp");
-    const json = await response.json();
-    setData({
-      "name" : json.name,
-      "id" : json.id,
-      "icon" : json.icon,
+  const getDataAxios = async () => {
+    axios.get("https://eu.api.blizzard.com/data/wow/pet/39?namespace=static-eu&locale=en_GB&access_token=EUwbXptNK1KjPQsXNVHLLxqNoDm4w5YAkr")
+    .then((res) => {
+      const result = {
+        "name": res.data.name,
+        "id" : res.data.id,
+        "icon": res.data.icon
+      }
+      setData(result)
+      console.log(res.data.name)
+      console.log(result)
+      setLoading(false);
     })
-    // const mediaResponse = await fetch("");
-    // we receive the data, need to render on page
-    console.log(data);
-    setLoading(false);
+    .catch((err) => {
+      console.log(err);
+      setData("err")
+      setLoading(false);
+    })
+    
   }
-  useEffect(() => {getData()}, []);
+  useEffect(() => {getDataAxios()}, []);
   return (
     <View style={styles.container}>
-      <Button title="Login" onPress={ () => navigation.navigate('Login')}></Button>
-      <Text style= {{color:'white'}}>Click to the button for more Data.</Text>
+      {isLoading ? (<ActivityIndicator/>) : (
+        <View>
+          <View style = {styles.containerinfo}>
+            <Image
+            style = {{
+              width: 56,
+              height: 56
+            }}
+            source={{uri: data.icon}}
+            />
+            <Text style={styles.loginTitle}>Name:{data.name}</Text>
+          </View>
+          <Button title="Login" onPress={ () => navigation.navigate('Login')}></Button>
+          <Text style= {{color:'white'}}>Click to the button for more Data.</Text>
+        </View>
+      ) }
     </View>
   )
 }
@@ -107,6 +129,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom:0,
     paddingBottom:0
+  },
+  containerinfo:{
+    backgroundColor: '#777',
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   buttonGroup:{
       flex: 1,
